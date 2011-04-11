@@ -23,3 +23,17 @@ hmmdecode (c:cs) trans emis pr_prob = hmmdecode cs trans emis (t_prob po_prob)
                         (\x -> (Map.findWithDefault 0 c (fst x)) * snd x)
                         (inter emis pr_prob)
               inter a b = Map.intersectionWith (\x y -> (x, y)) a b
+
+croakProb :: Bool -> Map.Map Char Rational
+croakProb True = Map.fromList [('P', 2 % 3), ('N', 1 % 3)]
+croakProb False = Map.fromList [('P', 1 % 3), ('N', 2 % 3)]
+
+genSquares = Map.fromList [(x, neighbo x) | x <- [1..500]]
+        where neighbo 1 = Map.fromList [(2, 1 % 1)]
+              neighbo 500 = Map.fromList [(499, 1 % 1)]
+              neighbo x = 
+                Map.fromList [(x - 1, 1 % 2), (x + 1, 1 % 2)]
+
+seq = ['P', 'P', 'P', 'P', 'N', 'N', 'P', 'P', 'P', 'N', 'P', 'P', 'N', 'P', 'N']
+
+result = 199364971 % 29386561536000
