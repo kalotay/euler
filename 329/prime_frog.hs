@@ -13,8 +13,9 @@ type MapInt = Map.Map Integer
 hmmdecode :: [Char] -> MapInt (MapInt Rational) 
              -> MapInt (Map.Map Char Rational) -> MapInt Rational
              -> MapInt Rational
-hmmdecode [] _ _ p = p
-hmmdecode (c:cs) trans emis pr_prob = hmmdecode cs trans emis (t_prob po_prob)
+hmmdecode (c:cs) trans emis pr_prob 
+        | length (c:cs) == 1 = po_prob
+        | otherwise = hmmdecode cs trans emis (t_prob po_prob)
         where t_prob x = Map.map (loc_t_prob po_prob) trans
               loc_t_prob y z = Map.fold
                                (\x acc -> acc + fst x * snd x) 0
@@ -34,6 +35,6 @@ genSquares = Map.fromList [(x, neighbo x) | x <- [1..500]]
               neighbo x = 
                 Map.fromList [(x - 1, 1 % 2), (x + 1, 1 % 2)]
 
-seq = ['P', 'P', 'P', 'P', 'N', 'N', 'P', 'P', 'P', 'N', 'P', 'P', 'N', 'P', 'N']
+sequence = ['P', 'P', 'P', 'P', 'N', 'N', 'P', 'P', 'P', 'N', 'P', 'P', 'N', 'P', 'N']
 
-result = 199364971 % 29386561536000
+result = 201094913 % 29386561536000
