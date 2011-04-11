@@ -1,0 +1,2 @@
+The number of possible routes from one corner of a square grid to the opposite
+corner is (2 * n)! / (n! * n!) where n is the grid size.
