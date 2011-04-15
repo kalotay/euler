@@ -8,26 +8,34 @@ sieve (p:ps) x k
                 , and [rem n p/=0 | p <- take k oddprimes]]
         ++ sieve ps (p*p) (k+1)
 
-
-hmmdecode :: [Char] -> [[Rational]] -> 
+hmmdecode :: [Char] -> [Map.Map Int Rational] -> 
              [Map.Map Char Rational] -> [Rational] -> [Rational]
 hmmdecode (c:cs) trans emis prior = 
         zipWith (\x y -> x * Map.findWithDefault 0 c y) posterior emis
         where posterior
-                | length cs == 0 = prior
-                | otherwise = [sum $ 
-                                zipWith (*) t $ hmmdecode cs trans emis prior
-                                | t <- trans]
+                | cs == [] = prior
+                | otherwise = [Map.foldWithKey
+                        (\k p acc -> acc + p * updated !! (k - 1)) 0 x | x <- trans]
+              updated = hmmdecode cs trans emis prior
 
 croakProb :: Bool -> Map.Map Char Rational
 croakProb True = Map.fromList [('P', 2 % 3), ('N', 1 % 3)]
 croakProb False = Map.fromList [('P', 1 % 3), ('N', 2 % 3)]
 
-genSquares n = [neighbo x n | x <- [1..n]]
-        where neighbo x n = zeros (x - 2) ++ [1 % 2] ++ zeros 1 ++ 
-                                [1 % 2] ++ zeros (n - x - 1)
-              zeros m = take m (repeat (0 % 1))
+trans_prob :: Int -> [Map.Map Int Rational]
+trans_prob n = [neighbo x n | x <- [1..n]]
+        where neighbo 1 _ = Map.fromList [(2, 1 % 1)]
+              neighbo x n
+                | x == n = Map.fromList [((n - 1), (1 % 1))]
+                | otherwise = Map.fromList [((x - 1), (1 % 2)), ((x + 1), (1 % 2))]
 
-sequence = ['P', 'P', 'P', 'P', 'N', 'N', 'P', 'P', 'P', 'N', 'P', 'P', 'N', 'P', 'N']
 
-result = 201094913 % 29386561536000
+used_primes n = takeWhile (<=n) primes
+
+obs_prob n = [croakProb $ elem x $ used_primes x | x <- [1..n]]
+
+seed n = take n $ repeat (1 % 500)
+
+obs_sequence = ['P', 'P', 'P', 'P', 'N', 'N', 'P', 'P', 'P', 'N', 'P', 'P', 'N', 'P', 'N']
+
+result = 199740353 % 29386561536000
