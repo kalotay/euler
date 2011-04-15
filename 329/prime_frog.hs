@@ -8,32 +8,25 @@ sieve (p:ps) x k
                 , and [rem n p/=0 | p <- take k oddprimes]]
         ++ sieve ps (p*p) (k+1)
 
-type MapInt = Map.Map Integer
 
-hmmdecode :: [Char] -> MapInt (MapInt Rational) 
-             -> MapInt (Map.Map Char Rational) -> MapInt Rational
-             -> MapInt Rational
-hmmdecode (c:cs) trans emis pr_prob 
-        | length (c:cs) == 1 = po_prob
-        | otherwise = hmmdecode cs trans emis (t_prob po_prob)
-        where t_prob x = Map.map (loc_t_prob po_prob) trans
-              loc_t_prob y z = Map.fold
-                               (\x acc -> acc + fst x * snd x) 0
-                               (inter y z)
-              po_prob = Map.map
-                        (\x -> (Map.findWithDefault 0 c (fst x)) * snd x)
-                        (inter emis pr_prob)
-              inter a b = Map.intersectionWith (\x y -> (x, y)) a b
+hmmdecode :: [Char] -> [[Rational]] -> 
+             [Map.Map Char Rational] -> [Rational] -> [Rational]
+hmmdecode (c:cs) trans emis prior = 
+        zipWith (\x y -> x * Map.findWithDefault 0 c y) posterior emis
+        where posterior
+                | length cs == 0 = prior
+                | otherwise = [sum $ 
+                                zipWith (*) t $ hmmdecode cs trans emis prior
+                                | t <- trans]
 
 croakProb :: Bool -> Map.Map Char Rational
 croakProb True = Map.fromList [('P', 2 % 3), ('N', 1 % 3)]
 croakProb False = Map.fromList [('P', 1 % 3), ('N', 2 % 3)]
 
-genSquares = Map.fromList [(x, neighbo x) | x <- [1..500]]
-        where neighbo 1 = Map.fromList [(2, 1 % 1)]
-              neighbo 500 = Map.fromList [(499, 1 % 1)]
-              neighbo x = 
-                Map.fromList [(x - 1, 1 % 2), (x + 1, 1 % 2)]
+genSquares n = [neighbo x n | x <- [1..n]]
+        where neighbo x n = zeros (x - 2) ++ [1 % 2] ++ zeros 1 ++ 
+                                [1 % 2] ++ zeros (n - x - 1)
+              zeros m = take m (repeat (0 % 1))
 
 sequence = ['P', 'P', 'P', 'P', 'N', 'N', 'P', 'P', 'P', 'N', 'P', 'P', 'N', 'P', 'N']
 
